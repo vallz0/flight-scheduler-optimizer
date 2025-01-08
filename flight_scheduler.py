@@ -1,39 +1,74 @@
 import mlrose
+from typing import List, Dict, Tuple
 
-pessoas:list= [("Lisboa","LIS"),
-               ("Madrid","MAD"),
-               ("Paris","CDG"),
-               ("Dublin","DUB"),
-               ("Bruxelas","BRU"),
-               ("Londres","LHR")]
+class FlightScheduler:
+    def __init__(self, people: List[Tuple[str, str]], destination: str, flights_file: str):
+        self.people = people
+        self.destination = destination
+        self.flights = self._load_flights(flights_file)
 
-destino:str = "FCO"
+    @staticmethod
+    def _load_flights(flights_file: str) -> Dict[Tuple[str, str], List[Tuple[str, str, int]]]:
+        flights: Dict[Tuple[str, str], List[Tuple[str, str, int]]] = {}
+        with open(flights_file, "r") as file:
+            for line in file:
+                origin, destination, departure, arrival, price = line.strip().split(",")
+                flights.setdefault((origin, destination), []).append((departure, arrival, int(price)))
+        return flights
 
-voos:dict = {}
-for linha in open("flights.txt"):
-    origem, destino, saida, chegada, preco = linha.split(",")
-    voos.setdefault((origem,destino), [])
-    voos[(origem,destino)].append((saida,chegada,int(preco)))
+    def fitness_function(self, schedule: List[int]) -> int:
+        total_price: int = 0
+        flight_index: int = 0
 
-def fitness_function(agenda:list) -> int:
-    id_voo:int = -1
-    total_preco:int = 0
+        for i in range(len(self.people)):
+            origin: str = self.people[i][1]
 
-    for i in range(len(agenda) // 2):
-        origem:str = pessoas[i][1]
-        id_voo +=  1
-        ida = voos[(origem,destino)][agenda[id_voo]]
-        total_preco += ida[2]
-        id_voo += 1
-        volta = voos[(destino, origem)][agenda[id_voo]]
-        total_preco += volta[2]
-    return  total_preco
+            outbound_flight = self.flights[(origin, self.destination)][schedule[flight_index]]
+            total_price += outbound_flight[2]
+            flight_index += 1
 
-agenda:list[int] = [1,2,3,2,7,3,6,3,2,4,5,3] # 10**12
-fitness_function(agenda)
+            return_flight = self.flights[(self.destination, origin)][schedule[flight_index]]
+            total_price += return_flight[2]
+            flight_index += 1
 
-fitness = mlrose.CustomFitness(fitness_function)
+        return total_price
 
-problema = mlrose.DiscreteOpt(length=12,fitness_fn=fitness,
-                              maximize = False,max_val = 10)
+    def optimize_schedule(self, max_val: int, max_attempts: int = 100, max_iters: int = 1000) -> Tuple[List[int], int]:
+        fitness = mlrose.CustomFitness(self.fitness_function)
+        problem = mlrose.DiscreteOpt(
+            length=len(self.people) * 2,
+            fitness_fn=fitness,
+            maximize=False,
+            max_val=max_val
+        )
 
+        best_schedule, best_cost = mlrose.random_hill_climb(
+            problem,
+            max_attempts=max_attempts,
+            max_iters=max_iters
+        )
+
+        return best_schedule, best_cost
+
+def main():
+    people = [
+        ("Lisboa", "LIS"),
+        ("Madrid", "MAD"),
+        ("Paris", "CDG"),
+        ("Dublin", "DUB"),
+        ("Bruxelas", "BRU"),
+        ("Londres", "LHR")
+    ]
+
+    destination = "FCO"
+    flights_file = "flights.txt"
+
+    scheduler = FlightScheduler(people, destination, flights_file)
+
+    best_schedule, best_cost = scheduler.optimize_schedule(max_val=10)
+
+    print("Best Schedule:", best_schedule)
+    print("Total Cost:", best_cost)
+
+if __name__ == "__main__":
+    main()
