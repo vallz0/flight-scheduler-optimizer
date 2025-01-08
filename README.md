@@ -47,4 +47,4 @@ Origin,Destination,Departure,Arrival,Price
 LIS,FCO,6:00,8:30,250
 MAD,FCO,7:00,9:30,200
 ```
-
+![Texto Alternativo](graf1.png)
