@@ -48,10 +48,3 @@ LIS,FCO,6:00,8:30,250
 MAD,FCO,7:00,9:30,200
 ```
 
-## Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests with improvements and suggestions.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
