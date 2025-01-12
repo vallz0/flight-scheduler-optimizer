@@ -24,7 +24,7 @@ This project uses optimization algorithms to find the most cost-effective flight
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/flight-scheduler-optimizer.git
+   git clone https://github.com/vallz0/flight-scheduler-optimizer.git
    ```
 
 2. Install the dependencies:
